@@ -535,5 +535,26 @@ CREATE OR REPLACE TRIGGER #escape("BI_#arguments.tablename#")# #lf#  before inse
 	
 	<cfreturn result>
 </cffunction>
+<cffunction name="hasRecords" access="public" returntype="boolean" output="no">
+	<cfargument name="tablename" type="string" required="yes" hint="The table from which to return a record.">
+	<cfargument name="data" type="any" required="no" hint="A structure with the data for the desired record. Each key/value indicates a value for the field matching that key.">
+	<cfargument name="advsql" type="struct" hint="A structure of sqlarrays for each area of a query (SELECT,FROM,WHERE,ORDER BY).">
+	<cfargument name="filters" type="array">
+	
+	<cfset var aSQL = ArrayNew(1)>
+	<cfset var qHasRecords = 0>
+	<cfset var result = false>
+	
+	<cfset ArrayAppend(aSQL,"SELECT	CASE WHEN EXISTS ( ")>
+		<cfset ArrayAppend(aSQL,"SELECT	1 ")>
+		<cfset ArrayAppend(aSQL,"FROM")>
+		<cfset ArrayAppend(aSQL,getFromSQL(argumentCollection=arguments))>
+		<cfset ArrayAppend(aSQL,"WHERE		1 = 1")>
+		<cfset ArrayAppend(aSQL,getWhereSQL(argumentCollection=arguments))>
+	<cfset ArrayAppend(aSQL," ) THEN #getBooleanSqlValue(1)# ELSE #getBooleanSqlValue(0)# END AS hasRecords FROM DUAL")>
+	
+	<cfset qHasRecords = runSQLArray(aSQL)>
+	<cfreturn qHasRecords.hasRecords>
+</cffunction>
 
 </cfcomponent>
